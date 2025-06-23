@@ -16,7 +16,7 @@ class StdCalculation:
 
     def __init__(self):
         self.fdir = 'pipeline/data/std'
-        self.fpaths = sorted(glob.glob(os.path.join(self.fdir, "*.fits")))
+        self.fpaths = self._load_file_path()
         self.tm_ref = None
 
     def _load_file_path(self):
@@ -99,7 +99,6 @@ class StdCalculation:
         """ Calculate the standard deviation of processed flux values. """
         flux_diff = np.diff(flux)
         smooth_diff = savgol_filter(flux_diff, window_length=68, polyorder=2)
-
         return 3 * np.std(smooth_diff[9000:9500])
 
     def _interpolate(self, time, flux):
