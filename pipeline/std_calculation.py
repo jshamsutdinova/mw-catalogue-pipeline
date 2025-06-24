@@ -126,4 +126,5 @@ class StdCalculation:
 if __name__ == '__main__':
     obj = StdCalculation()
     std = obj.calculate_std_deviations()
-    print(std)
+    
+    np.save('pipeline/data/std/std_20230713.npy', std)
