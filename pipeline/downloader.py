@@ -8,6 +8,7 @@ class Downloader:
         Handles downloading of SRH correlation plots files from FTP server
     """
     FTP_HOST = "ftp.rao.istp.ac.ru"  # Adress from Observatory in Badary
+    # FTP_HOST = "badary.iszf.irk.ru"  # Adress from external network
     FTP_USER = "anonymous"
     FTP_PASS = ""
     FTP_ROOT = "/SRH/corrPlot/"
