@@ -2,6 +2,7 @@ import numpy as np
 from pathlib import Path
 from datetime import date
 from astropy.io import fits
+from flux_processing import FluxProcessing
 
 
 class FindPeak:
@@ -10,6 +11,7 @@ class FindPeak:
     def __init__(self):
         self.basedir = 'pipeline/data/corr_plots'
         self.std = np.load('pipeline/data/std/std_20230713.npy')
+        self.flux_process_obj = None
 
         self.num_events = []
         self.flare_duration = []
@@ -20,8 +22,18 @@ class FindPeak:
 
     def process_data(self, date):
         """ Process with corr.plots in three frequency bands to find peaks. """
-        for fname in self._generate_fnames(date):
+        fnames = self._generate_fnames(date)
+        tm_ref = self._initialize_time_reference(fnames[0])
+        self.flux_process_obj = FluxProcessing(tm_ref)
+        
+        for fname in fnames:
             freq, time, flux = self._read_fits(fname)
+
+    def _initialize_time_reference(self, fname):
+        """ Set the common time reference grid from the first file. """
+        with fits.open(f'{self.basedir}/{fname}') as hdul:
+            tm_ref = hdul[2].data['time'][0]
+        return tm_ref
 
     def _read_fits(self, fname):
         """ Read FITS file of SRH. """
@@ -33,9 +45,9 @@ class FindPeak:
             freq = hdul[1].data['frequencies']
             time = hdul[2].data['time']
             flux = hdul[2].data['I']
-
-            for fq in freq:
-                proccessed_flux = self._process_flux()
+                        
+            for idx in range(freq.shape[0]):
+                proccessed_flux = self.flux_process_obj.process_flux(flux[idx], time[idx])
                 peaks = self._find_peaks()
 
         return freq, time, flux
@@ -74,6 +86,6 @@ class FindPeak:
 
 if __name__ == "__main__":
     peaks = FindPeak()
-    dt = date(2025, 1, 1)
+    dt = date(2025, 1, 3)
 
     peaks.process_data(dt)

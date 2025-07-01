@@ -4,6 +4,7 @@ import numpy as np
 import scipy.ndimage
 from astropy.io import fits
 from scipy.signal import savgol_filter
+from flux_processing import FluxProcessing
 
 
 class StdCalculation:
@@ -59,6 +60,7 @@ class StdCalculation:
         Returns:
             numpy.ndarray: std deviation values for all frequency channels
         """
+        flux_process_obj = FluxProcessing(self.tm_ref)
         with fits.open(fpath) as hdul:
             freq = hdul[1].data['frequencies']
             time = hdul[2].data['time']
@@ -67,33 +69,34 @@ class StdCalculation:
             std_values = np.zeros(freq.shape[0])
 
             for i in range(freq.shape[0]):
-                proccessed_flux = self._process_flux(time[i], flux[i])
-                std_values[i] = self._calculate_flux_std(proccessed_flux)
+                _, proccessed_flux = flux_process_obj.process_flux(time[i], flux[i])
+                
+                # std_values[i] = self._calculate_flux_std(proccessed_flux)
 
         return std_values
 
-    def _process_flux(self, time, flux):
-        """
-        Process a frequency channel's flux data.
+    # def _process_flux(self, time, flux):
+    #     """
+    #     Process a frequency channel's flux data.
 
-        Args:
-            time (numpy.ndarray): Time points for the channel
-            flux (numpy.ndarray): Flux values for the channel
+    #     Args:
+    #         time (numpy.ndarray): Time points for the channel
+    #         flux (numpy.ndarray): Flux values for the channel
 
-        Returns:
-            numpy.ndarray: Processed flux values ready for std calculation
-        """
-        # Interpolate to common time grid
-        interpolated = self._interpolate(time, flux)
+    #     Returns:
+    #         numpy.ndarray: Processed flux values ready for std calculation
+    #     """
+    #     # Interpolate to common time grid
+    #     interpolated = self._interpolate(time, flux)
 
-        # Remove outliers
-        cleaned = self._remove_outliers_z_score(interpolated[:10193])
+    #     # Remove outliers
+    #     cleaned = self._remove_outliers_z_score(interpolated[:10193])
 
-        # Remove trend amd smooth
-        detrended = self._remove_trend(cleaned)
-        smoothed = savgol_filter(detrended, window_length=3, polyorder=2)
+    #     # Remove trend amd smooth
+    #     detrended = self._remove_trend(cleaned)
+    #     smoothed = savgol_filter(detrended, window_length=3, polyorder=2)
 
-        return smoothed
+    #     return smoothed
 
     def _calculate_flux_std(self, flux):
         """ Calculate the standard deviation of processed flux values. """
@@ -127,4 +130,4 @@ if __name__ == '__main__':
     obj = StdCalculation()
     std = obj.calculate_std_deviations()
     
-    np.save('pipeline/data/std/std_20230713.npy', std)
+    # np.save('pipeline/data/std/std_20230713.npy', std)
